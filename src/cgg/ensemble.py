@@ -14,6 +14,7 @@ import os
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -108,7 +109,7 @@ def _training_payload(config, results: list[TrainResult], n_fit: int, n_val: int
     """Json-ready training record built from the returned histories."""
     models = []
     for result in results:
-        best = min(result.history, key=lambda row: (row["val_loss"], row["epoch"]))
+        best = next(row for row in result.history if row["epoch"] == result.best_epoch)
         models.append(
             {
                 "seed": result.seed,
@@ -126,6 +127,11 @@ def _training_payload(config, results: list[TrainResult], n_fit: int, n_val: int
         "device": "cpu",
         "latent_dim": config.model.latent_dim,
         "beta": config.model.beta,
+        "kl_warmup_epochs": config.train.kl_warmup_epochs,
+        "warmup_rule": (
+            "effective_beta = beta * min(1, epoch / kl_warmup_epochs) with epoch 1-based; "
+            "kl_warmup_epochs 0 uses beta from epoch 1"
+        ),
         "epochs": config.train.epochs,
         "batch_size": config.train.batch_size,
         "lr": config.train.lr,
@@ -135,15 +141,19 @@ def _training_payload(config, results: list[TrainResult], n_fit: int, n_val: int
         "n_val": n_val,
         "seeds": list(config.ensemble.seeds),
         "loss_definition": (
-            "batch mean of (sum of squared errors over 128 coordinates + beta * KL). "
-            "KL is the diagonal Gaussian closed form, also averaged over the batch."
+            "batch mean of (sum of squared errors over 128 coordinates + effective_beta * KL). "
+            "KL is the diagonal Gaussian closed form, also averaged over the batch. "
+            "effective_beta reaches the configured beta at epoch kl_warmup_epochs."
         ),
         "protocol": (
             "One validation cut of the train split is shared by every member. "
             "Its seed is the dataset seed. Each model seed sets initialization and "
             "batch order only. Calibration and test rows are not used."
         ),
-        "selection": "lowest validation loss; the earliest epoch wins a tie",
+        "selection": (
+            "lowest validation loss among epochs at the full target beta "
+            "(epoch >= kl_warmup_epochs); the earliest epoch wins a tie"
+        ),
         "figure": "figures/training_loss.png",
         "models": models,
     }
@@ -281,6 +291,7 @@ def _report(out_dir: Path) -> None:
         print(
             f"seed {model['seed']}: first val {model['first_val_loss']:.6f}, "
             f"best val {model['best_val_loss']:.6f} at epoch {model['best_epoch']}, "
+            f"best val KL {model['best_val_kl']:.6f}, "
             f"last train {model['last_train_loss']:.6f}"
         )
     elong = ", ".join(f"c={row['c']}: {row['mean_elongation']:.6f}" for row in generated["by_c"])
@@ -308,6 +319,329 @@ def _report(out_dir: Path) -> None:
         raise SystemExit(1)
 
 
+def run_beta_sweep(config_path: Path, out_dir: Path, checkpoint_dir: Path) -> float:
+    """Train one seed at each candidate beta and write ``results/beta_sweep.json``.
+
+    Checkpointing uses the validation cut of the train split. The score is the
+    prior population at ``sweep_c`` against fresh draws from the true
+    conditional. Calibration and test rows are not read. The chosen beta is
+    the one whose generated trace is closest to the true trace; the config
+    file's ``model.beta`` is then set to that value.
+    """
+    config = load_run_config(config_path)
+    split = generate_dataset(
+        config.data.n_shapes,
+        seed=config.data.seed,
+        fractions=config.data.fractions,
+        population=config.data.population,
+    )
+    fit_x, fit_c, val_x, val_c = split_train_val(
+        split.train_shapes,
+        split.train_c,
+        config.train.val_fraction,
+        seed=config.data.seed,
+    )
+    condition = float(config.sweep_c)
+    true_samples = sample_true_conditional(
+        condition,
+        config.uncertainty.n_true,
+        rng=np.random.default_rng(config.uncertainty.sample_seed + 1),
+    )
+    seed = int(config.ensemble.seeds[0])
+    rows = [
+        _sweep_one_beta(
+            config,
+            beta,
+            seed,
+            fit_x,
+            fit_c,
+            val_x,
+            val_c,
+            true_samples,
+            condition,
+            checkpoint_dir / "sweep" / f"beta_{format(beta, '.6g').replace('.', 'p')}",
+        )
+        for beta in config.beta_candidates
+    ]
+    chosen_index = min(range(len(rows)), key=lambda index: rows[index]["trace_abs_error"])
+    chosen = float(rows[chosen_index]["beta"])
+    payload = {
+        "seed": seed,
+        "c": condition,
+        "kl_warmup_epochs": config.train.kl_warmup_epochs,
+        "warmup_rule": (
+            "effective_beta = beta * min(1, epoch / kl_warmup_epochs), epoch 1-based. "
+            "Epoch kl_warmup_epochs is the first epoch at the full beta."
+        ),
+        "samples_per_model": config.ensemble.samples_per_model,
+        "n_true": config.uncertainty.n_true,
+        "ridge": config.uncertainty.ridge,
+        "true_sample_seed": config.uncertainty.sample_seed + 1,
+        "model_sample_seed": config.uncertainty.sample_seed,
+        "selection": (
+            "Each beta is trained at one seed. The checkpoint minimises validation "
+            "loss among epochs at the full beta. Validation is a cut of the train "
+            "split. Calibration and test rows are not used. The true trace and the "
+            "2-Wasserstein distance use fresh draws from the known conditional, the "
+            "same Gaussian fits as the ensemble score. The chosen beta minimises "
+            "|generated_trace - true_trace|; an earlier candidate wins a tie."
+        ),
+        "chosen_beta": chosen,
+        "chosen_trace_abs_error": rows[chosen_index]["trace_abs_error"],
+        "runs": rows,
+    }
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    _write(out_dir / "beta_sweep.json", payload)
+    _write_chosen_beta(config_path, chosen)
+    print(f"wrote {out_dir / 'beta_sweep.json'}")
+    print(f"chose beta {format(chosen, '.6g')}")
+    for row in rows:
+        print(
+            f"beta {row['beta']}: val KL {row['best_val_kl']:.6f}, "
+            f"generated trace {row['generated_trace']:.6f}, true trace {row['true_trace']:.6f}, "
+            f"frechet {row['frechet_distance']:.6f}"
+        )
+    return chosen
+
+
+def _sweep_one_beta(
+    config,
+    beta: float,
+    seed: int,
+    fit_x,
+    fit_c,
+    val_x,
+    val_c,
+    true_samples: np.ndarray,
+    condition: float,
+    out_dir: Path,
+) -> dict:
+    """Train one beta and score its prior population at a single condition."""
+    result = train_model(
+        fit_x,
+        fit_c,
+        val_x,
+        val_c,
+        replace(config.model, beta=float(beta)),
+        config.train,
+        seed=seed,
+        out_dir=out_dir,
+    )
+    model = load_model(result.checkpoint, config.model.latent_dim)
+    generated = sample_model(
+        model,
+        condition,
+        config.ensemble.samples_per_model,
+        np.random.default_rng(config.uncertainty.sample_seed),
+    )
+    generated_mean, generated_cov = fit_gaussian(generated)
+    true_mean, true_cov = fit_gaussian(true_samples)
+    generated_trace = float(np.trace(generated_cov))
+    true_trace = float(np.trace(true_cov))
+    best = next(row for row in result.history if row["epoch"] == result.best_epoch)
+    return {
+        "beta": float(beta),
+        "best_epoch": result.best_epoch,
+        "best_val_loss": result.best_val_loss,
+        "best_val_kl": float(best["val_kl"]),
+        "best_val_recon": float(best["val_recon"]),
+        "generated_trace": generated_trace,
+        "true_trace": true_trace,
+        "trace_abs_error": abs(generated_trace - true_trace),
+        "frechet_distance": frechet_distance(
+            generated_mean,
+            generated_cov,
+            true_mean,
+            true_cov,
+            config.uncertainty.ridge,
+        ),
+    }
+
+
+def run_beta_sweep_v2(config_path: Path, out_dir: Path, checkpoint_dir: Path) -> tuple[float, int]:
+    """Train one seed on the W2 grid and write ``results/beta_sweep_v2.json``.
+
+    The score is the mean 2-Wasserstein distance of the conditional prior to
+    fresh draws from the true conditional, averaged over c in the configured
+    sweep conditions. Checkpointing uses the validation cut of the train split.
+    Calibration and test rows are not read. ``results/beta_sweep.json`` is left
+    as the earlier trace-error sweep. The chosen beta and latent width are
+    written into the config.
+    """
+    config = load_run_config(config_path)
+    split = generate_dataset(
+        config.data.n_shapes,
+        seed=config.data.seed,
+        fractions=config.data.fractions,
+        population=config.data.population,
+    )
+    fit_x, fit_c, val_x, val_c = split_train_val(
+        split.train_shapes,
+        split.train_c,
+        config.train.val_fraction,
+        seed=config.data.seed,
+    )
+    from cgg.diagnostics import _score_population, _true_samples, choose_lowest_score
+
+    conditions = config.sweep_conditions
+    true_samples = _true_samples(config, conditions, config.uncertainty.sample_seed + 21)
+    seed = int(config.ensemble.seeds[0])
+    rows = []
+    for beta in config.beta_candidates_v2:
+        for latent_dim in config.latent_dim_candidates:
+            tag = f"beta_{format(beta, '.6g').replace('.', 'p')}_lat_{latent_dim}"
+            rows.append(
+                _sweep_one_setting(
+                    config,
+                    float(beta),
+                    int(latent_dim),
+                    seed,
+                    fit_x,
+                    fit_c,
+                    val_x,
+                    val_c,
+                    true_samples,
+                    conditions,
+                    checkpoint_dir / "sweep_v2" / tag,
+                )
+            )
+    chosen_index = choose_lowest_score([row["mean_frechet"] for row in rows])
+    chosen = rows[chosen_index]
+    payload = {
+        "seed": seed,
+        "conditions": [float(condition) for condition in conditions],
+        "kl_warmup_epochs": config.train.kl_warmup_epochs,
+        "warmup_rule": (
+            "effective_beta = beta * min(1, epoch / kl_warmup_epochs), epoch 1-based. "
+            "Epoch kl_warmup_epochs is the first epoch at the full beta."
+        ),
+        "samples_per_model": config.ensemble.samples_per_model,
+        "n_true": config.uncertainty.n_true,
+        "ridge": config.uncertainty.ridge,
+        "true_sample_seed": config.uncertainty.sample_seed + 21,
+        "model_sample_seed": config.uncertainty.sample_seed,
+        "latent_dim_note": (
+            "latent_dim 4 matches the four unobserved factors in the synthetic "
+            "generator: radius R, amplitude a, phase phi, and elongation e. "
+            "The condition c is observed and is not one of those four."
+        ),
+        "selection": (
+            "Each (beta, latent_dim) pair is trained at one seed. The checkpoint "
+            "minimises validation loss among epochs at the full beta. Validation "
+            "is a cut of the train split. Calibration and test rows are not used. "
+            "The true populations are fresh draws from the known conditional, shared "
+            "across every pair. The model population is the conditional prior "
+            "z ~ N(0, I). The chosen pair minimises the mean, over the listed "
+            "conditions, of the 2-Wasserstein distance. Loop order is beta candidates "
+            "then latent widths, and an earlier pair wins a tie. "
+            "results/beta_sweep.json is the earlier trace-error sweep and is not rewritten."
+        ),
+        "chosen_beta": chosen["beta"],
+        "chosen_latent_dim": chosen["latent_dim"],
+        "chosen_mean_frechet": chosen["mean_frechet"],
+        "runs": rows,
+    }
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    _write(out_dir / "beta_sweep_v2.json", payload)
+    _write_chosen_setting(config_path, float(chosen["beta"]), int(chosen["latent_dim"]))
+    print(f"wrote {out_dir / 'beta_sweep_v2.json'}")
+    print(
+        f"chose beta {format(chosen['beta'], '.6g')}, latent_dim {chosen['latent_dim']}, "
+        f"mean frechet {chosen['mean_frechet']:.6f}"
+    )
+    for row in rows:
+        print(
+            f"beta {row['beta']}, latent {row['latent_dim']}: "
+            f"val KL {row['best_val_kl']:.6f}, mean frechet {row['mean_frechet']:.6f}"
+        )
+    return float(chosen["beta"]), int(chosen["latent_dim"])
+
+
+def _sweep_one_setting(
+    config,
+    beta: float,
+    latent_dim: int,
+    seed: int,
+    fit_x,
+    fit_c,
+    val_x,
+    val_c,
+    true_samples: list[np.ndarray],
+    conditions: tuple[float, ...],
+    out_dir: Path,
+) -> dict:
+    """Train one (beta, latent_dim) pair and score its prior at each condition."""
+    from cgg.diagnostics import _score_population
+
+    result = train_model(
+        fit_x,
+        fit_c,
+        val_x,
+        val_c,
+        replace(config.model, beta=float(beta), latent_dim=int(latent_dim)),
+        config.train,
+        seed=seed,
+        out_dir=out_dir,
+    )
+    model = load_model(result.checkpoint, latent_dim)
+    rng = np.random.default_rng(config.uncertainty.sample_seed)
+    by_c = []
+    for condition, truth in zip(conditions, true_samples, strict=True):
+        generated = sample_model(model, float(condition), config.ensemble.samples_per_model, rng)
+        by_c.append(_score_population(generated, truth, config.uncertainty.ridge, float(condition)))
+    best = next(row for row in result.history if row["epoch"] == result.best_epoch)
+    mean_frechet = float(np.mean([row["frechet_distance"] for row in by_c]))
+    return {
+        "beta": float(beta),
+        "latent_dim": int(latent_dim),
+        "best_epoch": result.best_epoch,
+        "best_val_loss": result.best_val_loss,
+        "best_val_kl": float(best["val_kl"]),
+        "best_val_recon": float(best["val_recon"]),
+        "mean_frechet": mean_frechet,
+        "by_c": by_c,
+    }
+
+
+def _write_chosen_beta(path: Path, beta: float) -> None:
+    """Replace the ``model.beta`` value in the yaml with the sweep choice."""
+    _replace_yaml_value(path, "beta", format(beta, ".6g"))
+
+
+def _write_chosen_setting(path: Path, beta: float, latent_dim: int) -> None:
+    """Write the W2-selected beta and latent width into the config."""
+    _replace_yaml_value(path, "latent_dim", str(int(latent_dim)))
+    text = Path(path).read_text(encoding="utf-8")
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.startswith("  beta:"):
+            if index > 0 and lines[index - 1].startswith("  #"):
+                lines[index - 1] = (
+                    "  # Set by the W2 sweep in results/beta_sweep_v2.json. "
+                    "results/beta_sweep.json is the earlier trace-error sweep. "
+                    "results/baseline_collapsed/ is the beta=0.5 run with no warm-up."
+                )
+            lines[index] = f"  beta: {format(beta, '.6g')}"
+            Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")
+            return
+    raise RuntimeError(f"{path} has no model.beta entry")
+
+
+def _replace_yaml_value(path: Path, key: str, value: str) -> None:
+    """Replace the first indented ``key:`` line under the config."""
+    text = Path(path).read_text(encoding="utf-8")
+    lines = text.splitlines()
+    prefix = f"  {key}:"
+    for index, line in enumerate(lines):
+        if line.startswith(prefix):
+            lines[index] = f"{prefix} {value}"
+            Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")
+            return
+    raise RuntimeError(f"{path} has no {key} entry")
+
+
 def _write(path: Path, payload: dict) -> None:
     """Write one results record."""
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -321,7 +655,31 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--config", type=Path, default=Path("configs/default.yaml"))
     parser.add_argument("--out", type=Path, default=Path("results"))
     parser.add_argument("--checkpoints", type=Path, default=Path("checkpoints"))
+    parser.add_argument(
+        "--sweep",
+        action="store_true",
+        help="Sweep beta on one seed by trace error, write it into the config, then train the ensemble.",
+    )
+    parser.add_argument(
+        "--sweep-v2",
+        action="store_true",
+        help="Sweep beta and latent width by mean W2, write them into the config, then train the ensemble.",
+    )
+    parser.add_argument(
+        "--diagnostics",
+        action="store_true",
+        help="Score the current seed-0 checkpoint. Does not train and does not change the config.",
+    )
     args = parser.parse_args(argv)
+    if args.diagnostics:
+        from cgg.diagnostics import run_diagnostics
+
+        run_diagnostics(args.config, args.out, args.checkpoints)
+        return
+    if args.sweep:
+        run_beta_sweep(args.config, args.out, args.checkpoints)
+    if args.sweep_v2:
+        run_beta_sweep_v2(args.config, args.out, args.checkpoints)
     run(args.config, args.out, args.checkpoints)
 
 

@@ -15,14 +15,25 @@ population:
   elongation_std: 0.1
   noise_std: 0.01
 model:
-  latent_dim: 8
-  beta: 0.5
+  # Width 4 matches the four generator factors R, a, phi, and e. c is observed.
+  latent_dim: 4
+  # Set by the W2 sweep in results/beta_sweep_v2.json. results/beta_sweep.json is the earlier trace-error sweep. results/baseline_collapsed/ is the beta=0.5 run with no warm-up.
+  beta: 0.3
 train:
   epochs: 100
   batch_size: 128
   lr: 0.001
   # Held out from the train split only. Calibration and test stay untouched.
   val_fraction: 0.15
+  # Linear ramp of the KL weight from 0 to beta. Epoch 20 is the first full-beta epoch.
+  kl_warmup_epochs: 20
+  # Trace-error sweep already saved in results/beta_sweep.json. Not the selection rule anymore.
+  beta_candidates: [0.1, 0.03, 0.01, 0.003]
+  sweep_c: 0.5
+  # Mean 2-Wasserstein over sweep_conditions. One seed per pair.
+  beta_candidates_v2: [0.5, 0.3, 0.1, 0.03, 0.01, 0.003, 0.001]
+  latent_dim_candidates: [4, 8]
+  sweep_conditions: [0.1, 0.5, 0.9]
 ensemble:
   seeds: [0, 1, 2, 3, 4]
   samples_per_model: 4096

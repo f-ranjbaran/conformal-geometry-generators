@@ -1,0 +1,148 @@
+{
+  "checkpoint": "checkpoints/seed_0/model.pt",
+  "seed": 0,
+  "beta": 0.003,
+  "latent_dim": 8,
+  "kl_warmup_epochs": 20,
+  "best_epoch": 99,
+  "n_val": 420,
+  "val_split_seed": 0,
+  "conditions": [
+    0.1,
+    0.5,
+    0.9
+  ],
+  "n_generated": 4096,
+  "n_true": 4096,
+  "n_shown": 15,
+  "ridge": 0.0001,
+  "prior_sample_seed": 1000,
+  "fitted_sample_seed": 1003,
+  "true_sample_seed": 1011,
+  "draw_order": "For each source, c loops in (0.1, 0.5, 0.9) and one Generator draws n_generated latents at each c. The plotted curves are the first n_shown of those draws. The true samples are one Generator, true population then the next c.",
+  "why_not_replaced_c": "Encoding a validation shape with its condition replaced by the target c reconstructs that shape under a condition it was not drawn from. The decoded set is not a sample from p(shape | c).",
+  "aggregate_posterior": {
+    "definition": "Equal mixture of the encoder Gaussians q(z | x, c) on the validation cut, using each row's own c. Log-variance is clamped to [-30, 20] before the exponential, matching the training KL. mean is the average of the posterior means. std is the square root of (average posterior variance + variance of the posterior means) on each coordinate.",
+    "target": "A standard normal prior has mean 0 and std 1 on every coordinate.",
+    "mean": [
+      -0.1622387257892461,
+      0.5488604771239417,
+      0.2779163610012758,
+      2.9157678987298694,
+      -0.25724941243728,
+      -0.2867732645500274,
+      -0.37563878304901577,
+      -0.4103237461476099
+    ],
+    "std": [
+      0.4744084123448526,
+      0.3641446156753147,
+      0.43712215575627417,
+      0.5214443740605349,
+      0.4299027448120796,
+      0.41674434586707015,
+      0.4458077097330338,
+      0.418141509152272
+    ],
+    "posterior_mean_std": [
+      0.02692302018008156,
+      0.09970047647490701,
+      0.013595885958402425,
+      0.5218270327574905,
+      0.07617136974908209,
+      0.04626941982852838,
+      0.07040229529270663,
+      0.06179776874623421
+    ],
+    "mean_component_std": [
+      0.4708990628634956,
+      0.3443292728144407,
+      0.4333812795317129,
+      0.012562817954588497,
+      0.4184273319622417,
+      0.41060922833642455,
+      0.4364902565292841,
+      0.40995006378749693
+    ],
+    "max_abs_mean": 2.9157678987298694,
+    "rms_std_error": 0.5631709307418467
+  },
+  "elongation_proxy": "mean over shapes of rms(x) / rms(y)",
+  "trace": "trace of the unbiased sample covariance (ddof=1)",
+  "frechet_distance": "2-Wasserstein distance between Gaussian fits, with ridge * I added to both covariances before the square root. The same definition as the ensemble score.",
+  "figure": "figures/diagnostics.png",
+  "populations": [
+    {
+      "source": "prior",
+      "description": "z ~ N(0, I), then decode at c",
+      "by_c": [
+        {
+          "c": 0.1,
+          "n": 4096,
+          "n_true": 4096,
+          "mean_elongation": 0.6644643512008528,
+          "true_mean_elongation": 1.1002321355845672,
+          "generated_trace": 2.353283968553468,
+          "true_trace": 0.6365321756238693,
+          "frechet_distance": 3.389424159521061
+        },
+        {
+          "c": 0.5,
+          "n": 4096,
+          "n_true": 4096,
+          "mean_elongation": 0.7595276742896613,
+          "true_mean_elongation": 1.49769070018188,
+          "generated_trace": 2.451808796740268,
+          "true_trace": 0.7862241168979167,
+          "frechet_distance": 5.333295180318088
+        },
+        {
+          "c": 0.9,
+          "n": 4096,
+          "n_true": 4096,
+          "mean_elongation": 0.8590759485528624,
+          "true_mean_elongation": 1.8989195374141534,
+          "generated_trace": 2.363222550318328,
+          "true_trace": 0.9555900257676412,
+          "frechet_distance": 7.28468189741317
+        }
+      ]
+    },
+    {
+      "source": "aggregate_posterior_gaussian",
+      "description": "z ~ diagonal Gaussian matching the validation aggregate posterior, then decode at c. Correlations between latent dimensions are not kept.",
+      "by_c": [
+        {
+          "c": 0.1,
+          "n": 4096,
+          "n_true": 4096,
+          "mean_elongation": 1.3169189786831033,
+          "true_mean_elongation": 1.1002321355845672,
+          "generated_trace": 2.905783625792308,
+          "true_trace": 0.6365321756238693,
+          "frechet_distance": 2.377334859672153
+        },
+        {
+          "c": 0.5,
+          "n": 4096,
+          "n_true": 4096,
+          "mean_elongation": 1.4842898998534717,
+          "true_mean_elongation": 1.49769070018188,
+          "generated_trace": 2.896453695358219,
+          "true_trace": 0.7862241168979167,
+          "frechet_distance": 1.0508402445796077
+        },
+        {
+          "c": 0.9,
+          "n": 4096,
+          "n_true": 4096,
+          "mean_elongation": 1.6962837285038594,
+          "true_mean_elongation": 1.8989195374141534,
+          "generated_trace": 2.8118091199744537,
+          "true_trace": 0.9555900257676412,
+          "frechet_distance": 2.2997794401110356
+        }
+      ]
+    }
+  ]
+}

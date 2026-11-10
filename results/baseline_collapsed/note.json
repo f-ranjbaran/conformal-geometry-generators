@@ -1,0 +1,14 @@
+{
+  "description": "Ensemble trained with beta 0.5 and no KL warm-up. These files were copied before the beta sweep so that run stays available. The numbers inside training.json, uncertainty.json, and generated_samples.json are unchanged.",
+  "beta": 0.5,
+  "kl_warmup_epochs": 0,
+  "files": [
+    "training.json",
+    "uncertainty.json",
+    "generated_samples.json",
+    "figures/training_loss.png",
+    "figures/reconstructions.png",
+    "figures/generated_samples.png",
+    "figures/uncertainty_vs_c.png"
+  ]
+}

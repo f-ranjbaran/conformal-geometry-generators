@@ -9,7 +9,7 @@
     0.8227062801815019,
     0.9995659176053804
   ],
-  "reconstruction_summed_mse": 0.3188927043254681,
+  "reconstruction_summed_mse": 0.2954273473041402,
   "reconstruction_figure": "figures/reconstructions.png",
   "sample_model_seed": 0,
   "sample_seed": 1002,
@@ -21,17 +21,17 @@
     {
       "c": 0.1,
       "n": 500,
-      "mean_elongation": 1.091713371586964
+      "mean_elongation": 1.1058789930927997
     },
     {
       "c": 0.5,
       "n": 500,
-      "mean_elongation": 1.4952247444592406
+      "mean_elongation": 1.4934090601864762
     },
     {
       "c": 0.9,
       "n": 500,
-      "mean_elongation": 1.8791069850529738
+      "mean_elongation": 1.8895001487191443
     }
   ],
   "increases_with_c": true,

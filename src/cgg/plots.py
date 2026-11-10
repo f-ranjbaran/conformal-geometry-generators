@@ -111,6 +111,61 @@ def plot_generated_samples(
     return _save(fig, path)
 
 
+def plot_diagnostics(
+    path: Path,
+    latent_mean: FloatArray,
+    latent_std: FloatArray,
+    shown: list[list[FloatArray]],
+    means: list[list[FloatArray]],
+    conditions: tuple[float, ...],
+    method_names: tuple[str, str],
+    n_mean: int,
+    n_points: int = 64,
+) -> Path:
+    """Plot validation latent moments and the two conditional populations."""
+    plt = _pyplot()
+    stacked = [block for method in shown for block in method]
+    stacked.extend(np.reshape(mean, (1, -1)) for method in means for mean in method)
+    limit = _shared_limit(np.concatenate(stacked, axis=0))
+    fig = plt.figure(figsize=(9.6, 8.4), constrained_layout=True)
+    grid = fig.add_gridspec(3, 3)
+    axes = [fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1:])]
+    dims = np.arange(latent_mean.shape[0])
+    axes[0].axhline(0.0, color="0.45", linewidth=0.8, label="N(0, I)")
+    axes[0].plot(dims, latent_mean, marker="o", color="#2F6FAD", linestyle="None")
+    axes[0].set_title("Aggregate-posterior mean")
+    axes[0].set_ylabel("mean of z")
+    axes[1].axhline(1.0, color="0.45", linewidth=0.8, label="N(0, I)")
+    axes[1].plot(dims, latent_std, marker="o", color="#C65A2E", linestyle="None")
+    axes[1].set_title("Aggregate-posterior std")
+    axes[1].set_ylabel("std of z")
+    for axis in axes:
+        axis.set_xlabel("latent dimension")
+        axis.set_xticks(dims)
+        axis.legend(frameon=False, fontsize=8)
+    colors = ("#2F6FAD", "#C65A2E")
+    for row, (name, color) in enumerate(zip(method_names, colors, strict=True)):
+        for col, condition in enumerate(conditions):
+            axis = fig.add_subplot(grid[row + 1, col])
+            for draw_index, shape in enumerate(shown[row][col]):
+                _draw(
+                    axis,
+                    shape,
+                    n_points,
+                    color=color,
+                    width=0.8,
+                    alpha=0.45,
+                    label="samples" if draw_index == 0 else None,
+                )
+            _draw(axis, np.ravel(means[row][col]), n_points, color="#111111", width=1.5, label=f"mean of {n_mean}")
+            _panel(axis, limit, f"c = {condition:.1f}")
+            if col == 0:
+                axis.set_ylabel(name)
+                axis.legend(loc="upper right", frameon=False, fontsize=7)
+    fig.suptitle("Validation latents and the two ways of sampling z", y=1.02)
+    return _save(fig, path)
+
+
 def plot_uncertainty(path: Path, rows: list[dict]) -> Path:
     """Plot aleatoric spread, epistemic disagreement, and error against c."""
     plt = _pyplot()

@@ -5,7 +5,7 @@ import torch
 
 from cgg.data import sample_shapes
 from cgg.model import ConditionalVAE, elbo_loss
-from cgg.train import ModelConfig, TrainConfig, split_train_val, train_model
+from cgg.train import ModelConfig, TrainConfig, effective_beta, split_train_val, train_model
 
 
 def test_layer_sizes_and_forward() -> None:
@@ -60,6 +60,14 @@ def test_validation_split_is_a_partition_of_its_input() -> None:
     combined = np.concatenate([fit_x[:, 0], val_x[:, 0]])
     assert sorted(combined.tolist()) == list(range(100))
     assert val_c.shape == (15,)
+
+
+def test_kl_weight_ramps_linearly_over_the_warmup() -> None:
+    assert effective_beta(0.1, 1, 20) == 0.1 * (1 / 20)
+    assert effective_beta(0.1, 10, 20) == 0.1 * (10 / 20)
+    assert effective_beta(0.1, 20, 20) == 0.1
+    assert effective_beta(0.1, 21, 20) == 0.1
+    assert effective_beta(0.1, 3, 0) == 0.1
 
 
 def test_short_training_lowers_the_loss(tmp_path) -> None:

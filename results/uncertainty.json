@@ -25,9 +25,9 @@
       0.0,
       1.0
     ],
-    "endpoint_mean_epistemic_mean_trace": 0.003945779838940334,
+    "endpoint_mean_epistemic_mean_trace": 0.006887213869455874,
     "center_c": 0.5,
-    "center_epistemic_mean_trace": 0.0032353622069653024,
+    "center_epistemic_mean_trace": 0.005996615337023126,
     "endpoints_larger_than_center": true
   },
   "figure": "figures/uncertainty_vs_c.png",
@@ -38,18 +38,18 @@
       "mean_l2_true_vs_true": 0.016053926301141372,
       "covariance_frobenius_true_vs_true": 0.015741683018112566,
       "aleatoric_trace_per_model": [
-        0.04676004459162115,
-        0.02902932707672435,
-        0.06326124552985679,
-        0.03399819198849319,
-        0.04793040962002032
+        0.06380425116971666,
+        0.04380261645391385,
+        0.03530307547086306,
+        0.02723712019700037,
+        0.043505008367700625
       ],
-      "aleatoric_trace_mean": 0.044195843761343154,
-      "epistemic_mean_trace": 0.003934916908088741,
-      "epistemic_covariance_rms": 0.007853598379595535,
-      "frechet_distance": 0.5899552209802371,
-      "mean_l2": 0.05232462895081988,
-      "covariance_frobenius": 0.39803373917654555,
+      "aleatoric_trace_mean": 0.04273041433183891,
+      "epistemic_mean_trace": 0.00394627545749038,
+      "epistemic_covariance_rms": 0.013685522932071181,
+      "frechet_distance": 0.5893506754016044,
+      "mean_l2": 0.067726653869784,
+      "covariance_frobenius": 0.3958297941689079,
       "true_trace": 0.5907472523045213
     },
     {
@@ -58,18 +58,18 @@
       "mean_l2_true_vs_true": 0.017555891332966117,
       "covariance_frobenius_true_vs_true": 0.012694400252334639,
       "aleatoric_trace_per_model": [
-        0.039104613674753486,
-        0.020517998869331925,
-        0.05051506599159408,
-        0.024906076369031922,
-        0.0347475561232975
+        0.060998476967275936,
+        0.03301896040107989,
+        0.029313618555545224,
+        0.023614474360598048,
+        0.036451406756392885
       ],
-      "aleatoric_trace_mean": 0.03395826220560178,
-      "epistemic_mean_trace": 0.0026960860484622927,
-      "epistemic_covariance_rms": 0.006581444919001448,
-      "frechet_distance": 0.6437786638193139,
-      "mean_l2": 0.039922659250589625,
-      "covariance_frobenius": 0.44285733471581473,
+      "aleatoric_trace_mean": 0.036679387408178395,
+      "epistemic_mean_trace": 0.003749547326543391,
+      "epistemic_covariance_rms": 0.014296751030778383,
+      "frechet_distance": 0.6265573925046505,
+      "mean_l2": 0.03886614192641407,
+      "covariance_frobenius": 0.43627342272820246,
       "true_trace": 0.636910511479325
     },
     {
@@ -78,18 +78,18 @@
       "mean_l2_true_vs_true": 0.01698391266495276,
       "covariance_frobenius_true_vs_true": 0.024801354784942487,
       "aleatoric_trace_per_model": [
-        0.03455936409137647,
-        0.017971403768855167,
-        0.04060638201837443,
-        0.021275122343364747,
-        0.031002608025382607
+        0.058538485782732255,
+        0.02642091047869715,
+        0.02418835955625981,
+        0.017780250393357087,
+        0.028928210358876227
       ],
-      "aleatoric_trace_mean": 0.029082976049470688,
-      "epistemic_mean_trace": 0.0025546744699649236,
-      "epistemic_covariance_rms": 0.004990561844261722,
-      "frechet_distance": 0.6842632800600306,
-      "mean_l2": 0.03453614136331054,
-      "covariance_frobenius": 0.47567712774212956,
+      "aleatoric_trace_mean": 0.031171243313984503,
+      "epistemic_mean_trace": 0.004372600834442219,
+      "epistemic_covariance_rms": 0.01528564997383338,
+      "frechet_distance": 0.6639360441911869,
+      "mean_l2": 0.020160951986697758,
+      "covariance_frobenius": 0.4689088329737654,
       "true_trace": 0.6814550634855951
     },
     {
@@ -98,18 +98,18 @@
       "mean_l2_true_vs_true": 0.0281324401689284,
       "covariance_frobenius_true_vs_true": 0.015226273342301602,
       "aleatoric_trace_per_model": [
-        0.030302788444647986,
-        0.016348520172192627,
-        0.0373135662813366,
-        0.019953604874566554,
-        0.028491081539968544
+        0.06387476771538,
+        0.022781775727367302,
+        0.02239731288321701,
+        0.0166882682389023,
+        0.02538095444179263
       ],
-      "aleatoric_trace_mean": 0.026481912262542463,
-      "epistemic_mean_trace": 0.0028698737860187763,
-      "epistemic_covariance_rms": 0.0044707243718486315,
-      "frechet_distance": 0.7144801526206033,
-      "mean_l2": 0.039435691148829964,
-      "covariance_frobenius": 0.5057395054344194,
+      "aleatoric_trace_mean": 0.03022461580133185,
+      "epistemic_mean_trace": 0.005107678525440205,
+      "epistemic_covariance_rms": 0.017866835744106628,
+      "frechet_distance": 0.6875531517026603,
+      "mean_l2": 0.02180725339611756,
+      "covariance_frobenius": 0.4970518637706307,
       "true_trace": 0.720052041433306
     },
     {
@@ -118,18 +118,18 @@
       "mean_l2_true_vs_true": 0.01758934589148311,
       "covariance_frobenius_true_vs_true": 0.01100909932584203,
       "aleatoric_trace_per_model": [
-        0.03012770119913357,
-        0.015834120434551242,
-        0.03516769493770684,
-        0.019496179816220933,
-        0.027321392548068896
+        0.06468928577967592,
+        0.02303810634143775,
+        0.0201334197317076,
+        0.015733024217156166,
+        0.023267996828252577
       ],
-      "aleatoric_trace_mean": 0.025589417787136297,
-      "epistemic_mean_trace": 0.0032353622069653024,
-      "epistemic_covariance_rms": 0.004361992005762225,
-      "frechet_distance": 0.7388228496949018,
-      "mean_l2": 0.04898940649130323,
-      "covariance_frobenius": 0.5299434021271109,
+      "aleatoric_trace_mean": 0.029372366579646002,
+      "epistemic_mean_trace": 0.005996615337023126,
+      "epistemic_covariance_rms": 0.018625789595068134,
+      "frechet_distance": 0.7108850580616346,
+      "mean_l2": 0.030505213496172197,
+      "covariance_frobenius": 0.5209807459326258,
       "true_trace": 0.7571002267170849
     },
     {
@@ -138,18 +138,18 @@
       "mean_l2_true_vs_true": 0.011882476553059098,
       "covariance_frobenius_true_vs_true": 0.016486865010966356,
       "aleatoric_trace_per_model": [
-        0.03045594597411475,
-        0.01615142734257069,
-        0.0361644626664525,
-        0.019397543637757385,
-        0.028180029566444498
+        0.07079301808690716,
+        0.021978848801954873,
+        0.019356357220216207,
+        0.015613074956521264,
+        0.0229119825269574
       ],
-      "aleatoric_trace_mean": 0.026069881837467963,
-      "epistemic_mean_trace": 0.0034738158017219795,
-      "epistemic_covariance_rms": 0.004773763294822524,
-      "frechet_distance": 0.7828771844658268,
-      "mean_l2": 0.055180641621333106,
-      "covariance_frobenius": 0.5918602531533567,
+      "aleatoric_trace_mean": 0.03013065631851138,
+      "epistemic_mean_trace": 0.0066390496956154205,
+      "epistemic_covariance_rms": 0.021166880734018793,
+      "frechet_distance": 0.7529117311556723,
+      "mean_l2": 0.028174622277657633,
+      "covariance_frobenius": 0.5822659851123241,
       "true_trace": 0.8359210882869952
     },
     {
@@ -158,18 +158,18 @@
       "mean_l2_true_vs_true": 0.016881225209152532,
       "covariance_frobenius_true_vs_true": 0.01732556127255763,
       "aleatoric_trace_per_model": [
-        0.030979899723292435,
-        0.01735716036697748,
-        0.038676268380104885,
-        0.02091236731628606,
-        0.03013959041496174
+        0.0779537083941062,
+        0.023531267226747407,
+        0.019899911535365133,
+        0.016601911606526774,
+        0.02365442877723359
       ],
-      "aleatoric_trace_mean": 0.027613057240324524,
-      "epistemic_mean_trace": 0.003712032881776378,
-      "epistemic_covariance_rms": 0.005027964805596614,
-      "frechet_distance": 0.8012557991804655,
-      "mean_l2": 0.0715548882196462,
-      "covariance_frobenius": 0.6075543290154592,
+      "aleatoric_trace_mean": 0.032328245507995824,
+      "epistemic_mean_trace": 0.007800976997776404,
+      "epistemic_covariance_rms": 0.023576142357622315,
+      "frechet_distance": 0.76781737596903,
+      "mean_l2": 0.03417128699128256,
+      "covariance_frobenius": 0.5965598042742981,
       "true_trace": 0.8711850093460518
     },
     {
@@ -178,18 +178,18 @@
       "mean_l2_true_vs_true": 0.01496027653872803,
       "covariance_frobenius_true_vs_true": 0.010936759835932277,
       "aleatoric_trace_per_model": [
-        0.032396037674442796,
-        0.01841992248099181,
-        0.03650005014759196,
-        0.02237249904934587,
-        0.03171847862765172
+        0.0861110807014975,
+        0.027211865987226587,
+        0.020315625367047126,
+        0.018636367620064764,
+        0.027704841371681277
       ],
-      "aleatoric_trace_mean": 0.028281397596004832,
-      "epistemic_mean_trace": 0.003518562197823239,
-      "epistemic_covariance_rms": 0.0045446903868177615,
-      "frechet_distance": 0.8372191216211771,
-      "mean_l2": 0.09006827954546356,
-      "covariance_frobenius": 0.6588228226595423,
+      "aleatoric_trace_mean": 0.03599595620950345,
+      "epistemic_mean_trace": 0.009018033633687242,
+      "epistemic_covariance_rms": 0.02610442149134702,
+      "frechet_distance": 0.7938612969996136,
+      "mean_l2": 0.04389088913823021,
+      "covariance_frobenius": 0.6450211073265352,
       "true_trace": 0.9334741240200604
     },
     {
@@ -198,18 +198,18 @@
       "mean_l2_true_vs_true": 0.006166049420647082,
       "covariance_frobenius_true_vs_true": 0.02766301146752241,
       "aleatoric_trace_per_model": [
-        0.03539337581536292,
-        0.020919538259724597,
-        0.03689656460933238,
-        0.02483486644026331,
-        0.037525492869166364
+        0.09904290461129783,
+        0.03206878512778942,
+        0.021850338200772666,
+        0.020581665115117415,
+        0.03224692472795398
       ],
-      "aleatoric_trace_mean": 0.031113967598769915,
-      "epistemic_mean_trace": 0.003956642769791928,
-      "epistemic_covariance_rms": 0.005100417009844327,
-      "frechet_distance": 0.8733556712080759,
-      "mean_l2": 0.11159920520902167,
-      "covariance_frobenius": 0.7062059285842687,
+      "aleatoric_trace_mean": 0.04115812355658627,
+      "epistemic_mean_trace": 0.009828152281421369,
+      "epistemic_covariance_rms": 0.03036089984325975,
+      "frechet_distance": 0.8218236271912224,
+      "mean_l2": 0.041692701747711516,
+      "covariance_frobenius": 0.6900263535954118,
       "true_trace": 1.001847881325552
     }
   ]

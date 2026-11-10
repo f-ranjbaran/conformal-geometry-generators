@@ -1,0 +1,60 @@
+{
+  "seed": 0,
+  "c": 0.5,
+  "kl_warmup_epochs": 20,
+  "warmup_rule": "effective_beta = beta * min(1, epoch / kl_warmup_epochs), epoch 1-based. Epoch kl_warmup_epochs is the first epoch at the full beta.",
+  "samples_per_model": 4096,
+  "n_true": 4096,
+  "ridge": 0.0001,
+  "true_sample_seed": 1001,
+  "model_sample_seed": 1000,
+  "selection": "Each beta is trained at one seed. The checkpoint minimises validation loss among epochs at the full beta. Validation is a cut of the train split. Calibration and test rows are not used. The true trace and the 2-Wasserstein distance use fresh draws from the known conditional, the same Gaussian fits as the ensemble score. The chosen beta minimises |generated_trace - true_trace|; an earlier candidate wins a tie.",
+  "chosen_beta": 0.003,
+  "chosen_trace_abs_error": 1.6168421852106594,
+  "runs": [
+    {
+      "beta": 0.1,
+      "best_epoch": 97,
+      "best_val_loss": 0.6464441640036447,
+      "best_val_kl": 3.1759341217222667,
+      "best_val_recon": 0.32885076091403054,
+      "generated_trace": 11.185818734373294,
+      "true_trace": 0.7563209027774365,
+      "trace_abs_error": 10.429497831595857,
+      "frechet_distance": 4.218871964785397
+    },
+    {
+      "beta": 0.03,
+      "best_epoch": 100,
+      "best_val_loss": 0.42511660286358427,
+      "best_val_kl": 5.0407296044485905,
+      "best_val_recon": 0.27389472552708216,
+      "generated_trace": 6.77920140842884,
+      "true_trace": 0.7563209027774365,
+      "trace_abs_error": 6.022880505651403,
+      "frechet_distance": 5.774682382397946
+    },
+    {
+      "beta": 0.01,
+      "best_epoch": 100,
+      "best_val_loss": 0.33566105621201653,
+      "best_val_kl": 7.968791911715553,
+      "best_val_recon": 0.2559731350058601,
+      "generated_trace": 3.2279930373587935,
+      "true_trace": 0.7563209027774365,
+      "trace_abs_error": 2.471672134581357,
+      "frechet_distance": 5.844722364854059
+    },
+    {
+      "beta": 0.003,
+      "best_epoch": 99,
+      "best_val_loss": 0.2840994582289741,
+      "best_val_kl": 12.320880744570777,
+      "best_val_recon": 0.2471368153889974,
+      "generated_trace": 2.373163087988096,
+      "true_trace": 0.7563209027774365,
+      "trace_abs_error": 1.6168421852106594,
+      "frechet_distance": 5.388533552157003
+    }
+  ]
+}
