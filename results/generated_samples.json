@@ -1,0 +1,39 @@
+{
+  "reconstruction_model_seed": 0,
+  "reconstruction_source": "posterior mean on six validation quantiles of c",
+  "reconstruction_conditions": [
+    0.00024846868647843134,
+    0.19904020680777346,
+    0.39465979707096,
+    0.5922022917999895,
+    0.8227062801815019,
+    0.9995659176053804
+  ],
+  "reconstruction_summed_mse": 0.3188927043254681,
+  "reconstruction_figure": "figures/reconstructions.png",
+  "sample_model_seed": 0,
+  "sample_seed": 1002,
+  "n_shown": 15,
+  "n_mean": 500,
+  "draw_order": "for each c, n_shown prior draws then n_mean prior draws",
+  "elongation_proxy": "rms(x) / rms(y)",
+  "by_c": [
+    {
+      "c": 0.1,
+      "n": 500,
+      "mean_elongation": 1.091713371586964
+    },
+    {
+      "c": 0.5,
+      "n": 500,
+      "mean_elongation": 1.4952247444592406
+    },
+    {
+      "c": 0.9,
+      "n": 500,
+      "mean_elongation": 1.8791069850529738
+    }
+  ],
+  "increases_with_c": true,
+  "sample_figure": "figures/generated_samples.png"
+}

@@ -14,3 +14,23 @@ population:
   phase_std: 0.3
   elongation_std: 0.1
   noise_std: 0.01
+model:
+  latent_dim: 8
+  beta: 0.5
+train:
+  epochs: 100
+  batch_size: 128
+  lr: 0.001
+  # Held out from the train split only. Calibration and test stay untouched.
+  val_fraction: 0.15
+ensemble:
+  seeds: [0, 1, 2, 3, 4]
+  samples_per_model: 4096
+uncertainty:
+  c_min: 0.0
+  c_max: 1.0
+  c_count: 9
+  n_true: 4096
+  # Added to both covariances inside the Frechet square root only.
+  ridge: 0.0001
+  sample_seed: 1000

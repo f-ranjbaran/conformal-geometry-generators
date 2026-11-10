@@ -338,6 +338,10 @@ def load_data_config(path: Path) -> DataConfig:
         "calibration_fraction",
         "test_fraction",
         "population",
+        "model",
+        "train",
+        "ensemble",
+        "uncertainty",
     }
     unknown = set(raw) - known
     if unknown:
