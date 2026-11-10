@@ -1,0 +1,16 @@
+# Synthetic contour population. See src/cgg/data.py for the generative model.
+# Normals below are (mean, standard deviation), matching numpy Generator.normal.
+seed: 0
+n_shapes: 4000
+train_fraction: 0.70
+calibration_fraction: 0.15
+test_fraction: 0.15
+population:
+  n_points: 64
+  radius_mean: 1.0
+  radius_std: 0.05
+  amplitude_low: 0.05
+  amplitude_high: 0.2
+  phase_std: 0.3
+  elongation_std: 0.1
+  noise_std: 0.01

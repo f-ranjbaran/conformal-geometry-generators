@@ -1,0 +1,62 @@
+{
+  "seed": 0,
+  "n_shapes": 4000,
+  "shape_dim": 128,
+  "coordinate_layout": "x[0:n_points] then y[n_points:2*n_points]",
+  "normal_second_parameter": "standard deviation",
+  "population": {
+    "n_points": 64,
+    "radius_mean": 1.0,
+    "radius_std": 0.05,
+    "amplitude_low": 0.05,
+    "amplitude_high": 0.2,
+    "phase_std": 0.3,
+    "elongation_std": 0.1,
+    "noise_std": 0.01
+  },
+  "split_fractions": {
+    "train": 0.7,
+    "calibration": 0.15,
+    "test": 0.15
+  },
+  "split_rule": "train and calibration counts are floor(n * fraction + 1e-8); the test split receives the remainder",
+  "split_counts": {
+    "train": 2800,
+    "calibration": 600,
+    "test": 600
+  },
+  "elongation_proxy": "rms(x) / rms(y)",
+  "elongation_check": {
+    "seed": 1,
+    "n_per_c": 2000,
+    "by_c": [
+      {
+        "c": 0.1,
+        "n": 2000,
+        "mean_elongation": 1.0981067204053934
+      },
+      {
+        "c": 0.5,
+        "n": 2000,
+        "mean_elongation": 1.5020865256244373
+      },
+      {
+        "c": 0.9,
+        "n": 2000,
+        "mean_elongation": 1.8980869352404726
+      }
+    ],
+    "increases_with_c": true
+  },
+  "figure": {
+    "path": "figures/conditional_samples.png",
+    "seed": 2,
+    "n_shown": 15,
+    "n_mean": 500,
+    "conditions": [
+      0.1,
+      0.5,
+      0.9
+    ]
+  }
+}
