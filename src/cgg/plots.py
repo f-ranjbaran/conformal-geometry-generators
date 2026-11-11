@@ -202,6 +202,61 @@ def plot_uncertainty(path: Path, rows: list[dict]) -> Path:
     return _save(fig, path)
 
 
+def plot_calibration(path: Path, methods: list[dict]) -> Path:
+    """Nominal versus empirical test coverage, with the diagonal."""
+    plt = _pyplot()
+    fig, axis = plt.subplots(figsize=(5.4, 5.0), constrained_layout=True)
+    axis.plot([0.0, 1.0], [0.0, 1.0], color="0.45", linewidth=1.0, label="nominal")
+    for method in methods:
+        nominal = [row["nominal"] for row in method["by_alpha"]]
+        empirical = [row["test_coverage"] for row in method["by_alpha"]]
+        axis.plot(
+            nominal,
+            empirical,
+            marker="o",
+            linewidth=1.4,
+            color=method["color"],
+            label=method["label"],
+        )
+    axis.set_xlim(0.0, 1.0)
+    axis.set_ylim(0.0, 1.0)
+    axis.set_aspect("equal", adjustable="box")
+    axis.set_xlabel("nominal coverage")
+    axis.set_ylabel("empirical coverage")
+    axis.set_title("Test coverage")
+    axis.legend(frameon=False, fontsize=8, loc="upper left")
+    return _save(fig, path)
+
+
+def plot_conditional_coverage(path: Path, methods: list[dict], n_bins: int) -> Path:
+    """Empirical coverage in equal-width bins of c, one panel per alpha."""
+    plt = _pyplot()
+    alphas = [row["alpha"] for row in methods[0]["by_alpha"]]
+    fig, axes = plt.subplots(2, 2, figsize=(8.8, 6.4), constrained_layout=True, sharex=True, sharey=True)
+    centers = (np.arange(n_bins) + 0.5) / n_bins
+    for axis, alpha_index, alpha in zip(axes.ravel(), range(len(alphas)), alphas, strict=True):
+        nominal = methods[0]["by_alpha"][alpha_index]["nominal"]
+        axis.axhline(nominal, color="0.45", linewidth=1.0, label="nominal" if alpha_index == 0 else None)
+        for method in methods:
+            coverage = [bin_row["coverage"] for bin_row in method["by_alpha"][alpha_index]["by_bin"]]
+            axis.plot(
+                centers,
+                coverage,
+                marker="o",
+                linewidth=1.3,
+                color=method["color"],
+                label=method["label"] if alpha_index == 0 else None,
+            )
+        axis.set_title(f"1 − α = {nominal:.2f}")
+        axis.set_ylim(0.0, 1.02)
+    for axis in axes[1, :]:
+        axis.set_xlabel("c bin centre")
+    for axis in axes[:, 0]:
+        axis.set_ylabel("empirical coverage")
+    axes[0, 0].legend(frameon=False, fontsize=7, loc="upper right")
+    return _save(fig, path)
+
+
 def _draw(
     axis,
     shape: FloatArray,
