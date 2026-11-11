@@ -1,6 +1,6 @@
 # Conformal geometry generators
 
-Uncertainty here is a property of the learned population p(shape | c), not a property of one reconstructed mesh. The data are synthetic closed contours in the plane whose conditional law is known, so a generated population can be compared with the truth, and a prediction set can be checked against that same truth.
+Uncertainty here is a property of the population a generator produces, p(shape | c), not a property of one reconstructed mesh. The data are synthetic closed contours in the plane whose conditional law is known, so a generated population can be compared with the truth, and a prediction set can be checked against that same truth.
 
 ## Repository
 
@@ -128,11 +128,7 @@ Sampling z from the fitted aggregate posterior, instead of from N(0, I), produce
 | 0.90 | 0.048 | 148.9 | 0.907 | 1362.5 | 0.930 | 78.5 |
 | 0.95 | 0.065 | 155.4 | 0.967 | 1825.1 | 0.953 | 80.9 |
 
-The median ensemble score is 542 on the test split. The chi-square thresholds sit near 127–155, so almost every real shape falls outside the naive set. All four naive coverages are outside nominal ± 3 percentage points. The ensemble covariance is the reason: its calibration trace median is 0.037, against an oracle trace median of 0.774, and the noise floor only moves the ensemble trace to 0.050.
-
-Split conformal raises the threshold to the calibration order statistic. Its four marginal coverages, 0.498, 0.683, 0.907, and 0.967, are inside nominal ± 3 percentage points.
-
-The oracle at nominal 0.90 covers 558 of 600 test shapes, coverage 0.930, a gap of 0.030. That is the boundary of the ±3 percentage point band, not past it. The other three oracle levels are inside the band. The median oracle score is 65.9, well below the mean of a chi-square random variable with 128 degrees of freedom, which is 128. The true conditional is a 4-factor contour plus small noise, and the Gaussian with its covariance is a blunt summary of that law. Conformal still uses exchangeable scores, so the marginal guarantee does not need the Gaussian to be right.
+Marginal test coverage, read from `results/conformal.json`, is the `test_coverage` of each method. Naive chi-square covers 0.020, 0.027, 0.048, and 0.065 at nominal 0.50, 0.70, 0.90, and 0.95. Split conformal covers 0.498, 0.683, 0.907, and 0.967. The oracle covers 0.512, 0.703, 0.930, and 0.953. Split conformal is within ±3 percentage points of nominal at every alpha. All four naive coverages are outside that band.
 
 ![Nominal versus empirical coverage](results/figures/calibration_curve.png)
 
@@ -146,9 +142,7 @@ Conditional coverage uses five equal-width bins of c. Counts are 121, 117, 115, 
 | [0.6, 0.8) | 0.455 | 0.616 | 0.875 | 0.964 |
 | [0.8, 1.0) | 0.311 | 0.548 | 0.830 | 0.933 |
 
-Coverage falls as c increases. At nominal 0.50 the outer bins are 0.694 and 0.311. At nominal 0.90 they are 0.975 and 0.830. Most of these bins are outside nominal ± 3 percentage points. The true trace in `results/uncertainty.json` rises from 0.591 at c = 0 to 1.002 at c = 1, while the ensemble trace stays near 0.03–0.04. One threshold fit on the mixture of all c overcovers the tight condition and undercovers the wide one. The finite-sample guarantee is marginal over the calibration and test draws, not conditional on c.
-
-Every naive bin is below 0.11, so all of them are outside the band. The oracle's bin coverage stays near the nominal line. Seven of its twenty bin comparisons still leave the ±3 percentage point band; the largest is 0.957 against nominal 0.90 in c ∈ [0.4, 0.6). Those gaps are a few points on about 120 shapes, not the monotone swing of the ensemble scores.
+Split conformal reaches nominal marginal coverage within ±3 percentage points, and its coverage conditional on c is not uniform. At α = 0.5 the five bins are 0.694, 0.538, 0.513, 0.455, and 0.311, from the lowest c bin to the highest. At α = 0.1 they are 0.975, 0.949, 0.913, 0.875, and 0.830. The highest bin is the worst at every alpha in this table. The oracle stays close to nominal in every bin: 0.488–0.538 at nominal 0.50, 0.650–0.752 at 0.70, 0.897–0.957 at 0.90, and 0.923–0.982 at 0.95. Marginal coverage hides that local miscalibration. The generator's conformal sets are worst at high c. These figures do not show that the model learned the population.
 
 ![Coverage by condition bin](results/figures/conditional_coverage.png)
 
@@ -156,7 +150,7 @@ Every naive bin is below 0.11, so all of them are outside the band. The oracle's
 
 Posterior collapse at β ≥ 0.3. In the Wasserstein sweep those four settings have validation KL from 0.002 to 0.077 and a prior trace at c = 0.5 from 0.014 to 0.069, against a true trace of 0.779. The retrained ensemble matches that regime: validation KL at most 0.077, and trace 0.029 against 0.757 at c = 0.5. The mean contour elongates with c. The samples sit on that contour.
 
-Prior hole at β ≤ 0.1. Validation KL jumps to between 3 and 19, and the prior trace at c = 0.5 is between 2.1 and 11.4. Mean elongation moves away from `1 + c`, especially at width 8. The diagnostics at β = 0.003 show why. The aggregate posterior on validation shapes has a coordinate mean of 2.92 and standard deviations near 0.4, so z ~ N(0, I) is not a draw from q(z). Prior samples are jagged and under-elongated. Draws from the fitted q(z) are smoother and closer in Wasserstein distance, and they are still too wide. The decoder does not turn either distribution into p(shape | c).
+Prior hole at β ≤ 0.1. Validation KL jumps to between 2.982 and 18.561, and the prior trace at c = 0.5 is between 2.1 and 11.4. Mean elongation moves away from `1 + c`, especially at width 8. The diagnostics at β = 0.003 show why. The aggregate posterior on validation shapes has a coordinate mean of 2.92 and standard deviations near 0.4, so z ~ N(0, I) is not a draw from q(z). Prior samples are jagged and under-elongated. Draws from the fitted q(z) are smoother and closer in Wasserstein distance, and they are still too wide. The decoder does not turn either distribution into p(shape | c).
 
 The trace sweep and the Wasserstein sweep pick opposite failures. Trace error prefers β = 0.003, which is too wide and has 2-Wasserstein distance 5.39. Mean Wasserstein distance prefers β = 0.3 and width 4, which matches the mean shape and has almost no spread. Neither grid point has both.
 
@@ -164,15 +158,15 @@ Generated populations of the selected ensemble are too tight. The figure of prio
 
 The accuracy scores and the conformal sets both use a single Gaussian in 128 dimensions. The oracle's median score of 66, against a chi-square mean of 128, says that summary is already a simplification of the true conditional.
 
-The ensemble has five members. Disagreement of their mean shapes has trace about 0.006, which is small next to the missing aleatoric spread.
+The ensemble has five members. Disagreement of their mean shapes has trace 0.0069 at the endpoints and 0.0060 at the centre, which is small next to the missing aleatoric spread.
 
-Split conformal on the ensemble meets the marginal coverage target within 3 percentage points at all four nominal levels, and it misses conditional coverage by a wide margin. That is the difference between a marginal guarantee and a conditional one. The oracle, whose covariance does track c, has a much flatter conditional curve, and a few of its bins still leave the ±3 percentage point band.
+Split conformal meets nominal marginal coverage within 3 percentage points, and coverage conditional on c is not uniform. At α = 0.5 it falls from 0.694 in the lowest bin to 0.311 in the highest; at α = 0.1 it falls from 0.975 to 0.830. The oracle stays close to nominal in every bin. Marginal coverage hides local miscalibration, and the generator is worst at high c. That is not evidence that the model learned the population.
 
 The data are synthetic 2D contours. Nothing here is a measurement on a clinical mesh.
 
 ## Future work
 
-Normalising flows and diffusion models, so the conditional population is not a decoder of a standard normal. A learned per-coordinate decoder variance, so the predictive covariance is not forced to be the pushforward of a collapsed latent code. Conditional conformal, aimed at coverage given c rather than coverage averaged over c. The same scores on 3D meshes, and then on real cardiac meshes.
+Normalising flows and diffusion models, so the conditional population is not a decoder of a standard normal. A learned per-coordinate decoder variance, so the predictive covariance is not forced to be the pushforward of a collapsed latent code. Conditional and Mondrian conformal, so the threshold can depend on c instead of one marginal quantile. The same scores on 3D meshes, and then on real cardiac meshes.
 
 ## Note
 

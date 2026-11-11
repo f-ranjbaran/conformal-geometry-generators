@@ -315,7 +315,7 @@ def plot_conditional_samples(
         axis.axvline(0.0, color="0.75", linewidth=0.5)
     axes[0].set_ylabel("y")
     axes[0].legend(loc="upper right", frameon=False, fontsize=8)
-    fig.suptitle("True conditional population  p(shape | c)", y=1.02)
+    fig.suptitle("True conditional population  p(shape | c)", y=1.04)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=150, bbox_inches="tight")
